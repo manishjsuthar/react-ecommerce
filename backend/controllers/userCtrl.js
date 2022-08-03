@@ -1,6 +1,6 @@
 const Users = require('../models/userModel')
 // const Payments = require('../models/paymentModel')
-// const bcrypt = require('bcrypt')
+const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
 const userCtrl = {
@@ -15,9 +15,9 @@ const userCtrl = {
                 return res.status(400).json({msg: "Password is at least 6 characters long."})
 
             // Password Encryption
-            // const passwordHash = await bcrypt.hash(password, 10)
+            const passwordHash = await bcrypt.hashSync(password, 10)
             const newUser = new Users({
-                name, email, password
+                name, email, password:passwordHash
             })
 
             // Save mongodb
@@ -46,8 +46,8 @@ const userCtrl = {
             const user = await Users.findOne({email})
             if(!user) return res.status(400).json({msg: "User does not exist."})
 
-            // const isMatch = await bcrypt.compare(password, user.password)
-            // if(!isMatch) return res.status(400).json({msg: "Incorrect password."})
+            const isMatch = await bcrypt.compareSync(password, user.password)
+            if(!isMatch) return res.status(400).json({msg: "Incorrect password."})
 
             // If login success , create access token and refresh token
             const accesstoken = createAccessToken({id: user._id})
